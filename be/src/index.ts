@@ -10,6 +10,8 @@ interface User {
 let users: User[] = [];
 
 wss.on("connection", (socket) => {
+    console.log("A user connected.");
+
     socket.on("message", (data) => {
         try {
             const msg = JSON.parse(data.toString());
@@ -23,12 +25,15 @@ wss.on("connection", (socket) => {
                 const user = users.find((u) => u.socket === socket);
                 if (!user) return;
 
+                const messageData = JSON.stringify({
+                    sender: "User",
+                    message: msg.payload.message,
+                });
+
+                // Broadcast message to all users in the same room
                 users.forEach((u) => {
-                    if (u.room === user.room) {
-                        u.socket.send(JSON.stringify({
-                            sender: "User",
-                            message: msg.payload.message,
-                        }));
+                    if (u.room === user.room && u.socket.readyState === WebSocket.OPEN) {
+                        u.socket.send(messageData);
                     }
                 });
             }
@@ -39,6 +44,7 @@ wss.on("connection", (socket) => {
 
     socket.on("close", () => {
         users = users.filter((u) => u.socket !== socket);
+        console.log("User disconnected.");
     });
 });
 
