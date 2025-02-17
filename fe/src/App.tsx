@@ -5,9 +5,10 @@ function App() {
     const [messages, setMessages] = useState<{ sender: string; message: string }[]>([]);
     const wsRef = useRef<WebSocket | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
 
     useEffect(() => {
-        const ws = new WebSocket("ws://localhost:8080");
+        const ws = new WebSocket(WS_URL);
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
